@@ -50,6 +50,18 @@ Current implementation includes:
 - Privilege escalation through sudo.
 - INI-based inventory with parent groups.
 - Centralized connection variables using `group_vars`.
+- Reusable `common` role for baseline package management.
+- Package installation through `ansible.builtin.package`, supporting different Linux package managers.
+- Idempotent configuration management.
+
+The `common` role currently installs the following administration tools:
+
+- `curl`, `wget` – HTTP requests and file downloads.
+- `git` – version control.
+- `vim` – terminal-based text editing.
+- `unzip`, `tar` – archive management.
+- `rsync` – file synchronization.
+- `jq` – JSON processing.
 
 ## Repository Structure
 
@@ -57,9 +69,17 @@ Current implementation includes:
 .
 ├── ansible/
 │   ├── inventory/
-│   │   ├── hosts.ini
-│   │   └── group_vars/
-│   │   	└── all.yml
+│   │   ├── group_vars/
+│   │   │   └── all.yml
+│   │   └── hosts.ini
+│   ├── playbooks/
+│   │   └── site.yml
+│   ├── roles/
+│   │   └── common/
+│   │       ├── defaults/
+│   │       │   └── main.yml
+│   │       └── tasks/
+│   │           └── main.yml
 │   └── ansible.cfg
 ├── .gitignore
 └── README.md
