@@ -1,0 +1,6 @@
+---
+
+- name: Install common administration packages
+  ansible.builtin.package:
+    name: "{{ common_packages }}"
+    state: present

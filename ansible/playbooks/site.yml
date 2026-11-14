@@ -1,0 +1,8 @@
+---
+
+- name: Configure Linux servers
+  hosts: linux_servers
+  become: true
+
+  roles:
+    - common
