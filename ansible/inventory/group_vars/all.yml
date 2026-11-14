@@ -1,3 +1,4 @@
 ---
 
+ansible_become_exe: /usr/bin/sudo
 ansible_user: ansible
