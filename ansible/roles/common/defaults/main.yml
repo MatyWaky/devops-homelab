@@ -1,0 +1,12 @@
+---
+
+common_packages:
+  - curl
+  - wget
+  - git
+  - vim
+  - unzip
+  - tar
+  - rsync
+  - jq
+
