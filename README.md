@@ -22,7 +22,7 @@ The environment runs on Proxmox VE and consists of dedicated virtual machines.
 |---|---|---|---|
 | OPS01 | Ubuntu Server 26.04 | Ansible Control Node | Operational |
 | APP01 | Ubuntu Server 26.04 | Application Server | Operational |
-| DB01 | Rocky Linux 10 | Database Server | Planned |
+| DB01 | Rocky Linux 10 | Database Server | Operational |
 | MON01 | Debian 13 | Monitoring Server | Planned |
 
 ## Technology Stack
@@ -43,15 +43,20 @@ The environment runs on Proxmox VE and consists of dedicated virtual machines.
 
 Ansible runs from OPS01 and manages remote Linux servers over SSH.
 
+### Configuration Management
+
 Current implementation includes:
 
-- Dedicated `ansible` automation account on managed hosts.
+- Dedicated ansible automation account on managed hosts.
 - SSH key-based authentication.
 - Privilege escalation through sudo.
-- INI-based inventory with parent groups.
-- Centralized connection variables using `group_vars`.
-- Reusable `common` role for baseline package management.
-- Package installation through `ansible.builtin.package`, supporting different Linux package managers.
+- Distribution-specific sudo executable configuration:
+	- Ubuntu: /usr/bin/sudo.ws
+	- Rocky Linux: /usr/bin/sudo
+- INI-based inventory with functional host groups and parent groups.
+- Centralized connection and privilege escalation variables using group_vars.
+- Reusable common role for baseline package management.
+- Package installation through ansible.builtin.package, supporting different Linux package managers.
 - Idempotent configuration management.
 
 The `common` role currently installs the following administration tools:
@@ -63,6 +68,45 @@ The `common` role currently installs the following administration tools:
 - `rsync` – file synchronization.
 - `jq` – JSON processing.
 
+### System Updates
+
+System package updates are handled separately from baseline configuration through a dedicated `update.yml` playbook.
+
+The playbook uses `ansible.builtin.package` with `state: latest` to update installed packages across supported Linux distributions.
+
+Examples:
+
+```bash
+# Update all managed Linux servers
+ansible-playbook playbooks/update.yml
+
+# Update a specific server
+ansible-playbook playbooks/update.yml --limit db01
+
+# Update a specific group
+ansible-playbook playbooks/update.yml --limit app
+
+# Preview changes without applying them
+ansible-playbook playbooks/update.yml --check --diff
+```
+
+### Configuration Deployment
+
+The `site.yml` playbook applies the baseline configuration to managed Linux servers.
+
+Examples:
+
+```bash
+# Configure all managed Linux servers
+ansible-playbook playbooks/site.yml
+
+# Configure a specific server
+ansible-playbook playbooks/site.yml --limit app01
+
+# Check for configuration changes
+ansible-playbook playbooks/site.yml --check --diff
+```
+
 ## Repository Structure
 
 ```text
@@ -70,10 +114,13 @@ The `common` role currently installs the following administration tools:
 ├── ansible/
 │   ├── inventory/
 │   │   ├── group_vars/
-│   │   │   └── all.yml
+│   │   │   ├── all.yml
+│   │   │   ├── ubuntu.yml
+│   │   │   └── rocky.yml
 │   │   └── hosts.ini
 │   ├── playbooks/
-│   │   └── site.yml
+│   │   ├── site.yml
+│   │   └── update.yml
 │   ├── roles/
 │   │   └── common/
 │   │       ├── defaults/
