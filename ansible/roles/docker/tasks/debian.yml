@@ -1,0 +1,65 @@
+---
+
+- name: Validate supported Debian-family distribution
+  ansible.builtin.assert:
+    that:
+      - >-
+        (
+          ansible_facts['distribution'] == 'Ubuntu'
+          and ansible_facts['distribution_major_version'] in ['22', '24', '26']
+        )
+        or
+        (
+          ansible_facts['distribution'] == 'Debian'
+          and ansible_facts['distribution_major_version'] in ['12', '13']
+        )
+    fail_msg: >-
+      Unsupported distribution or version:
+      {{ ansible_facts['distribution'] }}
+      {{ ansible_facts['distribution_major_version'] }}
+
+- name: Install APT prerequisites
+  ansible.builtin.apt:
+    name: 
+      - ca-certificates
+      - curl
+    state: present
+    update_cache: true
+
+- name: Get native APT architecture
+  ansible.builtin.command:
+    cmd: dpkg --print-architecture
+  register: docker_apt_architecture
+  changed_when: false
+
+- name: Configure Docker APT repository
+  ansible.builtin.deb822_repository:
+    name: docker
+    types: 
+      - deb
+    uris: "https://download.docker.com/linux/{{ docker_apt_repository_distribution }}"
+    suites: 
+      - "{{ ansible_facts['distribution_release']  }}"
+    components:
+      - stable
+    architectures:
+      - "{{ docker_apt_architecture.stdout }}"
+    signed_by: "https://download.docker.com/linux/{{ docker_apt_repository_distribution }}/gpg"
+    state: present
+    install_python_debian: true
+
+- name: Update APT cache
+  ansible.builtin.apt:
+    update_cache: true
+
+- name: Install docker packages
+  ansible.builtin.apt:
+    name: "{{ docker_packages }}"
+    state: present
+
+- name: Enable and start Docker service
+  ansible.builtin.service:
+    name: "{{ docker_service }}"
+    state: started
+    enabled: true
+
