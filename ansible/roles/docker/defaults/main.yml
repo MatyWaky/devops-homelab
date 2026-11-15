@@ -12,3 +12,26 @@ docker_service: docker
 docker_apt_repository_distribution: >-
   {{ 'ubuntu' if ansible_facts['distribution'] == 'Ubuntu' else 'debian' }}
 
+docker_rpm_repository_distribution:
+  Rocky: rhel
+  AlmaLinux: rhel
+  RedHat: rhel
+  Fedora: fedora
+
+docker_rpm_supported_versions:
+  Rocky:
+    - '8'
+    - '9'
+    - '10'
+  AlmaLinux:
+    - '9'
+    - '10'
+  RedHat:
+    - '8'
+    - '9'
+    - '10'
+  Fedora:
+    - '43'
+    - '44'
+    - '45'
+
